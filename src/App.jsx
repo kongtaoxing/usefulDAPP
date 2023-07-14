@@ -130,42 +130,14 @@ const App = () => {
 			<div className="mainContainer">
 				<div className="dataContainer">
 					<div className="header">
-						base主网纪念NFT铸造
+						一系列实用DAPP前端版
 					</div>
 
-					<div className="bio">
-						首先点击"签名"获取NFT铸造签名，然后点击"mint"铸造，喜欢的话欢迎关注我的推特，开源代码：
-						<a href="https://github.com/kongtaoxing/usefulDAPP/tree/baseMainnet">usefulDAPP</a>
-					</div>
+					<br></br>
 
-					{/*
-					* If there is no currentAccount render this button
-					*/}
-					{!currentAccount && (
-					<button className="callButton" onClick={connectWallet}>
-						Connect Wallet
-					</button>
-					)}
-
-					<button className="callButton" onClick={_sign}>
-						签名
-					</button>
-
-					{ 
-						signature 
-						&& 
-						<div className="bio"> 
-						签名哈希：{signature} 
-						</div>
-					}
-					
-					{ 
-						signature 
-						&& 
-						<button className="callButton" onClick={_mint}> 
-						Mint 
-						</button>
-					}
+					<a href="https://useful-dapp-git-basemainnet-kongtaoxing.vercel.app/" className="bio">
+						1. base主网纪念NFT铸造
+					</a>
 
 					<div className="footer-container">
 						<img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
