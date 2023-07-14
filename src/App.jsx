@@ -134,7 +134,8 @@ const App = () => {
 					</div>
 
 					<div className="bio">
-						首先点击"签名"获取NFT铸造签名，然后点击"mint"铸造，喜欢的话欢迎关注我的推特
+						首先点击"签名"获取NFT铸造签名，然后点击"mint"铸造，喜欢的话欢迎关注我的推特，开源代码：
+						<a href="https://github.com/kongtaoxing/usefulDAPP/tree/baseMainnet">usefulDAPP</a>
 					</div>
 
 					{/*
