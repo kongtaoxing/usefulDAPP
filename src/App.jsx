@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import {ethers} from "ethers";
 import "./App.css";
-import twitterLogo from "./assets/twitter-logo.svg"
+import twitterLogo from "./assets/twitter-logo.svg";
+import baseNFT from "./assets/baseNFT.mp4";
 
 const getEthereumObject = () => window.ethereum;
 
@@ -166,6 +167,10 @@ const App = () => {
 						Mint 
 						</button>
 					}
+
+					<br></br>
+
+					<video src={baseNFT} autoPlay controls/>
 
 					<div className="footer-container">
 						<img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
