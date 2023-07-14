@@ -130,7 +130,7 @@ const App = () => {
 			<div className="mainContainer">
 				<div className="dataContainer">
 					<div className="header">
-						一系列实用DAPP前端版
+						一系列实用脚本前端版
 					</div>
 
 					<br></br>
