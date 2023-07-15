@@ -48,6 +48,7 @@ const findMetaMaskAccount = async () => {
 const App = () => {
 	const [currentAccount, setCurrentAccount] = useState("");
 	const [signature, setSignature] = useState("");
+	const [hash, setHash] = useState("");
 
 	const contractAddress = "0x1FC10ef15E041C5D3C54042e52EB0C54CB9b710c";
 
@@ -99,8 +100,12 @@ const App = () => {
 				/*
 				 * Execute the actual call from your smart contract
 				 */
-				const callTxn = await callContract.mint(signature);
+				const callTxn = await callContract.mint(signature, {
+					gasPrice: ethers.utils.parseUnits("0.0001", "gwei")
+				});
 				console.log("Mining...", callTxn.hash);
+
+				setHash(() => "https://basescan.org/tx/" + callTxn.hash);
 
 				await callTxn.wait();
 				console.log("Mined -- ", callTxn.hash);
@@ -168,9 +173,15 @@ const App = () => {
 						</button>
 					}
 
+					{
+						hash
+						&&
+						<a href={hash} className="bio">铸造哈希：basescan.org</a>
+					}
+
 					<br></br>
 
-					<video src={baseNFT} autoPlay controls/>
+					<video src={baseNFT} autoPlay loop />
 
 					<div className="footer-container">
 						<img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
