@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import {ethers} from "ethers";
 import "./App.css";
 import twitterLogo from "./assets/twitter-logo.svg";
-import baseNFT from "./assets/baseNFT.mp4";
+import opNFT from "./assets/opNFT.gif";
 
 const getEthereumObject = () => window.ethereum;
 
 const abi = [
-	"function mint(bytes)  external returns (uint256)",
+	"function call(uint256) external payable",
 ];
 
 /*
@@ -47,10 +47,10 @@ const findMetaMaskAccount = async () => {
 
 const App = () => {
 	const [currentAccount, setCurrentAccount] = useState("");
-	const [signature, setSignature] = useState("");
+	const [value, setValue] = useState();
 	const [hash, setHash] = useState("");
 
-	const contractAddress = "0x1FC10ef15E041C5D3C54042e52EB0C54CB9b710c";
+	const contractAddress = "0x09a402402612e529c29809197a78662db18cb038";
 
 	const connectWallet = async () => {
 		try {
@@ -71,23 +71,6 @@ const App = () => {
 		}
 	};
 
-	const _sign = async () => {
-		try {
-			const { ethereum } = window;
-			if (ethereum) {
-				const provider = new ethers.providers.Web3Provider(ethereum);
-				const signer = provider.getSigner();
-				const message = "all your base are belong to you.";
-				const messageBytes = ethers.utils.toUtf8Bytes(message);
-				const sig = await signer.signMessage(messageBytes);
-				setSignature(() => sig);
-			}
-		}
-		catch (e) {
-			console.log(e);
-		}
-	}
-
 	const _mint = async () => {
 		try {
 			const { ethereum } = window;
@@ -100,17 +83,15 @@ const App = () => {
 				/*
 				 * Execute the actual call from your smart contract
 				 */
-				const callTxn = await callContract.mint(signature, {
-					gasPrice: ethers.utils.parseUnits("0.0001", "gwei")
+				const callTxn = await callContract.call(value, {
+					value: ethers.utils.parseUnits("0.001", "ether")
 				});
 				console.log("Mining...", callTxn.hash);
 
-				setHash(() => "https://basescan.org/tx/" + callTxn.hash);
+				setHash(() => "https://optimistic.etherscan.io/tx/" + callTxn.hash);
 
 				await callTxn.wait();
 				console.log("Mined -- ", callTxn.hash);
-
-				count = await callContract.getOwner();
 				console.log("Minted successfully");
 			} else {
 				console.log("Ethereum object doesn't exist!");
@@ -136,12 +117,12 @@ const App = () => {
 			<div className="mainContainer">
 				<div className="dataContainer">
 					<div className="header">
-						base主网纪念NFT铸造
+						mint.fun Op链纪念NFT铸造
 					</div>
 
 					<div className="bio">
-						首先点击"签名"获取NFT铸造签名，然后点击"mint"铸造，喜欢的话欢迎关注我的推特，开源代码：
-						<a href="https://github.com/kongtaoxing/usefulDAPP/tree/baseMainnet">usefulDAPP</a>
+						输入铸造数量，然后点击"mint"铸造，喜欢的话欢迎关注我的<a href="https://twitter.com/kongtaoxing">推特</a>，开源代码：
+						<a href="https://github.com/kongtaoxing/usefulDAPP/tree/opMintFun">usefulDAPP</a>
 					</div>
 
 					{/*
@@ -152,36 +133,28 @@ const App = () => {
 						Connect Wallet
 					</button>
 					)}
-
-					<button className="callButton" onClick={_sign}>
-						签名
-					</button>
-
-					{ 
-						signature 
-						&& 
-						<div className="bio"> 
-						签名哈希：{signature} 
-						</div>
-					}
 					
-					{ 
-						signature 
-						&& 
-						<button className="callButton" onClick={_mint}> 
+					<div className="grid-container">
+						<span className="grid-item">
+              				请输入想要mint的数量：
+            			</span>
+						<input type="text" value={value} placeholder = '100' style={{borderRadius:'4px',border:'none'}} onChange={a=>{setValue(a.target.value)}} />
+					</div>
+					
+					<button className="callButton" onClick={_mint}> 
 						Mint 
-						</button>
-					}
+					</button>
 
 					{
 						hash
 						&&
-						<a href={hash} className="bio">铸造哈希：basescan.org</a>
+						<a href={hash} className="bio">铸造哈希：https://optimistic.etherscan.io/</a>
 					}
 
 					<br></br>
 
-					<video src={baseNFT} autoPlay loop />
+					{/* <video src={baseNFT} autoPlay loop /> */}
+					<img src={opNFT} />
 
 					<div className="footer-container">
 						<img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
