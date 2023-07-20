@@ -139,6 +139,12 @@ const App = () => {
 						1. base主网纪念NFT铸造
 					</a>
 
+					<a href="https://useful-dapp-git-opmintfun-kongtaoxing.vercel.app/" className="bio">
+						2.mint.fun上线OP纪念NFT批量mint
+					</a>
+
+					<br></br>
+
 					<div className="footer-container">
 						<img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
 						<a
