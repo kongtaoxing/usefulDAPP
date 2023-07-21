@@ -141,8 +141,8 @@ const App = () => {
 						<input type="text" value={value} placeholder = '100' style={{borderRadius:'4px',border:'none'}} onChange={a=>{setValue(a.target.value)}} />
 					</div>
 					
-					<button className="callButton" onClick={_mint}> 
-						Mint 
+					<button className="callButton" onClick={_mint} disabled> 
+						Mint（已结束）
 					</button>
 
 					{
