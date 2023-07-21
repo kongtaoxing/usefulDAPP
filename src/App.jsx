@@ -140,7 +140,7 @@ const App = () => {
 					</a>
 
 					<a href="https://useful-dapp-git-opmintfun-kongtaoxing.vercel.app/" className="bio">
-						2.mint.fun上线OP纪念NFT批量mint
+						<del>2.mint.fun上线OP纪念NFT批量mint</del>(已结束)
 					</a>
 
 					<br></br>
