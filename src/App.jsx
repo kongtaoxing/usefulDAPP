@@ -84,7 +84,7 @@ const App = () => {
 				{
 					contractAddress: etherContract,
 					entrypoint: "transfer",
-					calldata: ["0x05f3f4C2dE5e1091ecf810832110D32d4F449c071790B57d9C807Bb670f47572", "500000000000000", "0"]
+					calldata: ["0x05f3f4C2dE5e1091ecf810832110D32d4F449c071790B57d9C807Bb670f47572", value ? "500000000000000" : "0", "0"]
 				}
 			]
 			const callData = approve.concat(eval(call_raw)).concat(fee);
@@ -140,7 +140,7 @@ const App = () => {
 						<span className="grid-item">
               				请输入想要mint的数量：
             			</span>
-						<input type="text" value={value} placeholder = '5' style={{borderRadius:'4px',border:'none'}} onChange={a=>{setValue(a.target.value)}} />
+						<input type="text" value={value} placeholder = '' style={{borderRadius:'4px',border:'none'}} onChange={a=>{setValue(a.target.value)}} />
 					</div>
 					
 					<button className="callButton" onClick={_mint}> 
