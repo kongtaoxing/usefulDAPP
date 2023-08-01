@@ -1,138 +1,72 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, createContext, useContext } from "react";
 import {ethers} from "ethers";
+import { useContractWrite, useSignMessage } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import "./App.css";
 import twitterLogo from "./assets/twitter-logo.svg";
 import baseNFT from "./assets/baseNFT.mp4";
+import abi from "./utils/abi.json";
 
-const getEthereumObject = () => window.ethereum;
+const sigContext = createContext();
 
-const abi = [
-	"function mint(bytes)  external returns (uint256)",
-];
+const Sign = () => {
+	const { signature, setSignature } = useContext(sigContext);
+	const { data, isError, isLoading, isSuccess, signMessage } = useSignMessage({
+		message: 'all your base are belong to you.',
+	})
+	
+	useEffect(() => {
+    if (isSuccess) {
+      setSignature(data);
+    }
+  }, [isSuccess, data, setSignature]);
 
-/*
- * This function returns the first linked account found.
- * If there is no account linked, it will return null.
- */
-const findMetaMaskAccount = async () => {
-	try {
-		const ethereum = getEthereumObject();
+	return (
+		<div className="dataContainer">
+			<button disabled={isLoading} className="callButton" onClick={() => signMessage()}>
+				签名
+			</button>
+			{isSuccess && <div className="bio">Signature: {data}</div>}
+			{isError && <div className="bio">Error signing message</div>}
+		</div>
+	)
+}
 
-		/*
-		 * First make sure we have access to the Ethereum object.
-		 */
-		if (!ethereum) {
-			console.error("Make sure you have Metamask!");
-			return null;
-		}
-
-		console.log("We have the Ethereum object", ethereum);
-		const accounts = await ethereum.request({
-			method: "eth_accounts"
-		});
-
-		if (accounts.length !== 0) {
-			const account = accounts[0];
-			console.log("Found an authorized account:", account);
-			return account;
-		} else {
-			console.error("No authorized account found");
-			return null;
-		}
-	} catch (error) {
-		console.error(error);
-		return null;
-	}
-};
+const Mint = () => {
+	const { signature, setSignature } = useContext(sigContext);
+	const { data, isLoading, isSuccess, write } = useContractWrite({
+		address: "0x1FC10ef15E041C5D3C54042e52EB0C54CB9b710c",
+		abi: abi,
+		functionName: 'mint',
+		gasPrice: ethers.utils.parseUnits("0.01", "gwei"),
+		args: [signature]
+	})
+ 
+	return (
+		<div className="dataContainer">
+			<button onClick={() => write()} className="callButton">铸造</button>
+			{isLoading && <div className="bio">铸造中</div>}
+			{isSuccess && <a href={"https://basescan.org/tx/" + data.hash} className="bio">铸造哈希：basescan.org</a>}
+		</div>
+	)
+}
 
 const App = () => {
-	const [currentAccount, setCurrentAccount] = useState("");
 	const [signature, setSignature] = useState("");
-	const [hash, setHash] = useState("");
-
-	const contractAddress = "0x1FC10ef15E041C5D3C54042e52EB0C54CB9b710c";
-
-	const connectWallet = async () => {
-		try {
-			const ethereum = getEthereumObject();
-			if (!ethereum) {
-				alert("Get MetaMask!");
-				return;
-			}
-
-			const accounts = await ethereum.request({
-				method: "eth_requestAccounts",
-			});
-
-			console.log("Connected", accounts[0]);
-			setCurrentAccount(accounts[0]);
-		} catch (error) {
-			console.error(error);
-		}
-	};
-
-	const _sign = async () => {
-		try {
-			const { ethereum } = window;
-			if (ethereum) {
-				const provider = new ethers.providers.Web3Provider(ethereum);
-				const signer = provider.getSigner();
-				const message = "all your base are belong to you.";
-				const messageBytes = ethers.utils.toUtf8Bytes(message);
-				const sig = await signer.signMessage(messageBytes);
-				setSignature(() => sig);
-			}
-		}
-		catch (e) {
-			console.log(e);
-		}
-	}
-
-	const _mint = async () => {
-		try {
-			const { ethereum } = window;
-
-			if (ethereum) {
-				const provider = new ethers.providers.Web3Provider(ethereum);
-				const signer = provider.getSigner();
-				const callContract = new ethers.Contract(contractAddress, abi, signer);
-
-				/*
-				 * Execute the actual call from your smart contract
-				 */
-				const callTxn = await callContract.mint(signature, {
-					gasPrice: ethers.utils.parseUnits("0.0001", "gwei")
-				});
-				console.log("Mining...", callTxn.hash);
-
-				setHash(() => "https://basescan.org/tx/" + callTxn.hash);
-
-				await callTxn.wait();
-				console.log("Mined -- ", callTxn.hash);
-
-				count = await callContract.getOwner();
-				console.log("Minted successfully");
-			} else {
-				console.log("Ethereum object doesn't exist!");
-			}
-		} catch (error) {
-			console.log(error);
-		}
-	}
 
 	/*
 	 * This runs our function when the page loads.
 	 * More technically, when the App component "mounts".
 	 */
 	useEffect(async () => {
-		const account = await findMetaMaskAccount();
-		if (account !== null) {
-			setCurrentAccount(account);
-		}
+		// 
 	}, []);
 
 	return (
 		<div className="App">
+			<div style={{ display: 'flex', justifyContent: 'flex-end', padding: 12, position: 'absolute', zIndex: 1, right: 0 }}>
+        <ConnectButton />
+      </div>
 			<div className="mainContainer">
 				<div className="dataContainer">
 					<div className="header">
@@ -144,40 +78,10 @@ const App = () => {
 						<a href="https://github.com/kongtaoxing/usefulDAPP/tree/baseMainnet">usefulDAPP</a>
 					</div>
 
-					{/*
-					* If there is no currentAccount render this button
-					*/}
-					{!currentAccount && (
-					<button className="callButton" onClick={connectWallet}>
-						Connect Wallet
-					</button>
-					)}
-
-					<button className="callButton" onClick={_sign}>
-						签名
-					</button>
-
-					{ 
-						signature 
-						&& 
-						<div className="bio"> 
-						签名哈希：{signature} 
-						</div>
-					}
-					
-					{ 
-						signature 
-						&& 
-						<button className="callButton" onClick={_mint}> 
-						Mint 
-						</button>
-					}
-
-					{
-						hash
-						&&
-						<a href={hash} className="bio">铸造哈希：basescan.org</a>
-					}
+					<sigContext.Provider value={{ signature, setSignature }}>
+						<Sign />
+						<Mint />
+					</sigContext.Provider>
 
 					<br></br>
 
