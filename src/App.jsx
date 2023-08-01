@@ -143,6 +143,10 @@ const App = () => {
 						<del>2.mint.fun上线OP纪念NFT批量mint</del>(已结束)
 					</a>
 
+					<a href="https://useful-dapp-git-starkwars-kongtaoxing.vercel.app/" className="bio">
+						3. starkwar一次铸造5个
+					</a>
+
 					<br></br>
 
 					<div className="footer-container">
