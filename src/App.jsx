@@ -14,7 +14,7 @@ import warNFT from "./assets/starwar.png";
 const App = () => {
 	const [currentAccount, setCurrentAccount] = useState("");
 	const [account, setAccount]= useState(null);
-	const [chain, setChain] = useState("");
+	const [chain, setChain] = useState("localhost");
 	const [value, setValue] = useState();
 	const [hash, setHash] = useState("");
 
@@ -38,9 +38,9 @@ const App = () => {
 			let chainName = await chainId(wallet?.provider.chainId);
 			setChain(() => chainName);
 			// setConnected(connected => {return !!wallet?.isConnected})
-			console.log('current account:', currentAccount);
+			// console.log('current account:', currentAccount);
 			if (chainName != "mainnet-alpha") {
-				console.log("切换到主网");
+				console.log(chainName, "切换到主网");
 			}
 		  }
 		}
@@ -49,6 +49,18 @@ const App = () => {
 		  if (e.message.includes('User abort')) { /*ignore*/ }
 		}
 	  }
+
+	const disconnectWallet = async () => {
+		try{
+			await disconnect({ clearLastWallet: true });
+			setAccount(() => null);
+			setCurrentAccount(() => "");
+			setChain(() => "localhost");
+		}
+		catch(e) {
+			console.log(e.message);
+		}
+	}
 
 	async function chainId(id) {
 		if (id === constants.StarknetChainId.MAINNET) {
@@ -130,10 +142,14 @@ const App = () => {
 					{/*
 					* If there is no currentAccount render this button
 					*/}
-					{!currentAccount && (
+					{!currentAccount ? (
 					<button className="callButton" onClick={handleConnectClick}>
 						Connect Wallet
 					</button>
+					) : (
+						<button className="callButton" onClick={disconnectWallet}>
+							Disconnect
+						</button>
 					)}
 					
 					<div className="grid-container">
