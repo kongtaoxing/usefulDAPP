@@ -16,7 +16,7 @@ const Mint = () => {
 		abi: abi,
 		functionName: 'call',
 		// gasPrice: ethers.utils.parseUnits("0.01", "gwei"),
-		// value: ethers.utils.parseEther("0.005"),
+		value: ethers.utils.parseEther("0.005"),
 		args: [signature]
 	})
  
