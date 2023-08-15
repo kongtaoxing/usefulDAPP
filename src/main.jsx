@@ -7,7 +7,7 @@ import {
   tokenPocketWallet
 } from '@rainbow-me/rainbowkit/wallets';
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import { base } from 'wagmi/chains';
+import { bsc } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import React from 'react'
 import ReactDOM from 'react-dom'
@@ -15,7 +15,7 @@ import './index.css'
 import App from './App'
 
 const { chains, publicClient } = configureChains(
-  [base],
+  [bsc],
   [publicProvider()]
 );
 

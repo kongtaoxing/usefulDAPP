@@ -4,41 +4,19 @@ import { useContractWrite, useSignMessage } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import "./App.css";
 import twitterLogo from "./assets/twitter-logo.svg";
-import baseNFT from "./assets/baseNFT.mp4";
+import NFTImage from "./assets/muaverse.png";
 import abi from "./utils/abi.json";
 
 const sigContext = createContext();
 
-const Sign = () => {
-	const { signature, setSignature } = useContext(sigContext);
-	const { data, isError, isLoading, isSuccess, signMessage } = useSignMessage({
-		message: 'all your base are belong to you.',
-	})
-	
-	useEffect(() => {
-    if (isSuccess) {
-      setSignature(data);
-    }
-  }, [isSuccess, data, setSignature]);
-
-	return (
-		<div className="dataContainer">
-			<button disabled={isLoading} className="callButton" onClick={() => signMessage()}>
-				签名
-			</button>
-			{isSuccess && <div className="bio">Signature: {data}</div>}
-			{isError && <div className="bio">Error signing message</div>}
-		</div>
-	)
-}
-
 const Mint = () => {
 	const { signature, setSignature } = useContext(sigContext);
 	const { data, isLoading, isSuccess, write } = useContractWrite({
-		address: "0x1FC10ef15E041C5D3C54042e52EB0C54CB9b710c",
+		address: "0x4F9B2eafD5D4a5460b3B7b743595e5dE4eCA047E",
 		abi: abi,
-		functionName: 'mint',
-		gasPrice: ethers.utils.parseUnits("0.01", "gwei"),
+		functionName: 'call',
+		// gasPrice: ethers.utils.parseUnits("0.01", "gwei"),
+		// value: ethers.utils.parseEther("0.005"),
 		args: [signature]
 	})
  
@@ -46,7 +24,7 @@ const Mint = () => {
 		<div className="dataContainer">
 			<button onClick={() => write()} className="callButton">铸造</button>
 			{isLoading && <div className="bio">铸造中</div>}
-			{isSuccess && <a href={"https://basescan.org/tx/" + data.hash} className="bio">铸造哈希：basescan.org</a>}
+			{isSuccess && <a href={"https://bscscan.com/tx/" + data.hash} className="bio">铸造哈希：basescan.org</a>}
 		</div>
 	)
 }
@@ -70,22 +48,27 @@ const App = () => {
 			<div className="mainContainer">
 				<div className="dataContainer">
 					<div className="header">
-						base主网纪念NFT铸造
+						muaverse批量铸造批量邀请
 					</div>
 
 					<div className="bio">
-						首先点击"签名"获取NFT铸造签名，然后点击"mint"铸造，喜欢的话欢迎关注我的推特，开源代码：
-						<a href="https://github.com/kongtaoxing/usefulDAPP/tree/baseMainnet">usefulDAPP</a>
+					输入铸造数量，然后点击"mint"铸造，喜欢的话欢迎关注我的推特，开源代码：
+						<a href="https://github.com/kongtaoxing/usefulDAPP/tree/muaverse">usefulDAPP</a>
 					</div>
 
 					<sigContext.Provider value={{ signature, setSignature }}>
-						<Sign />
+						<div className="grid-container">
+							<span className="grid-item">
+								请输入想要mint的数量：
+							</span>
+							<input type="text" value={signature} placeholder = '' style={{borderRadius:'4px',border:'none'}} onChange={a=>{setSignature(a.target.value)}} />
+						</div>
 						<Mint />
 					</sigContext.Provider>
 
 					<br></br>
 
-					<video src={baseNFT} autoPlay loop />
+					<img src={NFTImage} />
 
 					<div className="footer-container">
 						<img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
