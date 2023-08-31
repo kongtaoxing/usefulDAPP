@@ -9,17 +9,17 @@ import "./App.css";
 import etherAbi from "./utils/ether.json";
 import caAbi from "./utils/ca.json";
 import twitterLogo from "./assets/twitter-logo.svg";
-import warNFT from "./assets/starwar.png";
+import warNFT from "./assets/quantumLeap.png";
 
 const App = () => {
 	const [currentAccount, setCurrentAccount] = useState("");
-	const [account, setAccount]= useState(null);
+	const [account, setAccount]= useState([]);
 	const [chain, setChain] = useState("localhost");
-	const [value, setValue] = useState();
+	const [value, setValue] = useState(null);
 	const [hash, setHash] = useState("");
 
 	const etherContract = "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7";
-	const contractAddress = "0x17bcbb8fca1ca93ed677a88609682106e2a1104bbffb7749a25afe837a77f21";
+	const contractAddress = "0x053f4a61f94c3c68a1cde46130939dbd89a53d7504a3350479d061072e904777";
 
 	const connectWallet = async () => {
 		const windowStarknet = await connect({
@@ -80,29 +80,19 @@ const App = () => {
 			/*
 				* Execute the actual call from your smart contract
 				*/
-			const approve = [{
+			const approve = {
 				contractAddress: etherContract,
 				entrypoint: "approve",
-				calldata: [contractAddress, String(500000000000000 * value), "0"]
-			}];
+				calldata: [contractAddress, String(5000000000000000 * value), "0"]
+			};
 			const call = {
 				contractAddress: contractAddress,
-				entrypoint: "mint_a",
-				calldata: ["0x05f3f4C2dE5e1091ecf810832110D32d4F449c071790B57d9C807Bb670f47572"]
+				entrypoint: "multiCall",
+				calldata: ["0x3f57ba000100e05d8ce7a74dcc8f7d3c0580594cfd78dd0f13dbbafecac9b46", value, '0x00b719f69b00a008a797dc48585449730aa1c09901fdbac1bc94b3bdc287cf76',currentAccount , '5000000000000000']
 			};
-			const call_string = JSON.stringify(call) + ',';
-			const call_raw = '[' + call_string.repeat(value) + ']';
-			const fee = [
-				{
-					contractAddress: etherContract,
-					entrypoint: "transfer",
-					calldata: ["0x05f3f4C2dE5e1091ecf810832110D32d4F449c071790B57d9C807Bb670f47572", value ? "500000000000000" : "0", "0"]
-				}
-			]
-			const callData = approve.concat(eval(call_raw)).concat(fee);
-			const callTxn = await account.execute(
-				callData
-			)
+			const callTxn = await account.execute([
+				approve, call
+      ])
 			console.log("Mining...", callTxn.transaction_hash);
 
 			setHash(() => "https://starkscan.co/tx/" + callTxn.hash);
@@ -124,18 +114,20 @@ const App = () => {
 		// if (account !== null) {
 		// 	setCurrentAccount(account);
 		// }
-	}, []);
+    console.log("current account:", currentAccount);
+    console.log("account:", account);
+	}, [currentAccount, account]);
 
 	return (
 		<div className="App">
 			<div className="mainContainer">
 				<div className="dataContainer">
 					<div className="header">
-						Starkwars NFT铸造
+						Quantum Leap 批量铸造
 					</div>
 
 					<div className="bio">
-						输入铸造数量(最多5个)，然后点击"mint"铸造，喜欢的话欢迎关注我的<a href="https://twitter.com/kongtaoxing">推特</a>，开源代码：
+						输入铸造数量，然后点击"mint"铸造，喜欢的话欢迎关注我的<a href="https://twitter.com/kongtaoxing">推特</a>，开源代码：
 						<a href="https://github.com/kongtaoxing/usefulDAPP/tree/starkwars">usefulDAPP</a>
 					</div>
 
