@@ -121,7 +121,7 @@ const App = () => {
 					</div>
 
 					<div className="bio">
-						点击部署按钮即可部署最简单合约，喜欢的话欢迎关注我的推特，开源代码：
+						点击部署按钮即可部署最简单合约，喜欢的话欢迎关注我的<a href="https://twitter.com/kongtaoxing">推特</a>，开源代码：
 						<a href="https://github.com/kongtaoxing/usefulDAPP/tree/scrollCA">usefulDAPP</a>
 						，在
 						<a href="https://scroll.io/developer-nft/check-eligibility">此处</a>
