@@ -32,6 +32,9 @@ export default function SolanaCloseAccount() {
         setTokenAccounts(raw_tokenAccounts.value);
         console.log('raw_tokenAccounts', raw_tokenAccounts);
       }
+      if (!publicKey) {
+        setTokenAccounts([]);
+      }
     };
 
     getTokenAccounts();
@@ -129,35 +132,37 @@ export default function SolanaCloseAccount() {
           &&
           <div className="flex flex-col items-center mt-4">
             <h2>Token Accounts</h2>
-            {tokenAccounts.map((tokenAccount) => (
-              <div key={tokenAccount.pubkey.toBase58()} className="border p-4 m-2 rounded-lg max-w-xl w-full">
-                <div className="text-left">
-                  <p><span className="font-bold">Account Address:</span> {tokenAccount.pubkey.toBase58()}</p>
-                  <p><span className="font-bold">Token Contract Address:</span> {tokenAccount.account.data.parsed.info.mint}</p>
-                  <p><span className="font-bold">Token Name:</span> {tokenAccount.account.data.parsed.info.tokenName || "Unknown"}</p>
-                  <p><span className="font-bold">Token Symbol:</span> {tokenAccount.account.data.parsed.info.tokenSymbol || "Unknown"}</p>
-                  <p><span className="font-bold">Balance:</span> {
-                    Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString)
-                  } ({tokenAccount.account.data.parsed.info.tokenAmount.decimals} decimals)</p>
-                  <p><span className="font-bold">Lamports:</span> {
-                    tokenAccount.account.lamports / LAMPORTS_PER_SOL
-                  } SOL</p>
-                  <button 
-                    onClick={() => closeAccount(tokenAccount.pubkey)}
-                    disabled={Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString) > 0}
-                    className={`mt-4 px-4 py-2 rounded ${
-                      Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString) > 0
-                        ? 'bg-gray-500 cursor-not-allowed'
-                        : 'bg-red-500 hover:bg-red-600'
-                    }`}
-                  >
-                    {Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString) > 0
-                      ? "Cannot close - Account has balance"
-                      : "Close Account"}
-                  </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {tokenAccounts.map((tokenAccount) => (
+                <div key={tokenAccount.pubkey.toBase58()} className="border p-4 m-2 rounded-lg max-w-lg w-full overflow-x-auto">
+                  <div className="text-left whitespace-nowrap">
+                    {/* <p><span className="font-bold">Account Address:</span> {tokenAccount.pubkey.toBase58()}</p> */}
+                    <p><span className="font-bold">Contract Address:</span> {tokenAccount.account.data.parsed.info.mint}</p>
+                    <p><span className="font-bold">Token Name:</span> {tokenAccount.account.data.parsed.info.tokenName || "Unknown"}</p>
+                    <p><span className="font-bold">Token Symbol:</span> {tokenAccount.account.data.parsed.info.tokenSymbol || "Unknown"}</p>
+                    <p><span className="font-bold">Token Balance:</span> {
+                      Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString)
+                    } ({tokenAccount.account.data.parsed.info.tokenAmount.decimals} decimals)</p>
+                    <p><span className="font-bold">SOL Balance:</span> {
+                      tokenAccount.account.lamports / LAMPORTS_PER_SOL
+                    } SOL</p>
+                    <button 
+                      onClick={() => closeAccount(tokenAccount.pubkey)}
+                      disabled={Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString) > 0}
+                      className={`mt-4 px-4 py-2 rounded ${
+                        Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString) > 0
+                          ? 'bg-gray-500 cursor-not-allowed'
+                          : 'bg-red-500 hover:bg-red-600'
+                      }`}
+                    >
+                      {Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString) > 0
+                        ? "Cannot close - Account has balance"
+                        : "Close Account"}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         }
       </div>
