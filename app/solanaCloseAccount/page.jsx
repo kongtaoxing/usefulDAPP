@@ -11,6 +11,7 @@ import { createCloseAccountInstruction } from "@solana/spl-token";
 import { Transaction } from "@solana/web3.js";
 import { Metaplex, keypairIdentity } from "@metaplex-foundation/js";
 import { PublicKey } from "@solana/web3.js";
+import { solanaSplTranslations as translations } from "@/consts/translation";
 
 // add this to solve `Hydration failed` issue
 const WalletMultiButtonDynamic = dynamic(
@@ -21,9 +22,19 @@ const WalletMultiButtonDynamic = dynamic(
 export default function SolanaCloseAccount() {
 
   const [tokenAccounts, setTokenAccounts] = useState([]);
+  const [language, setLanguage] = useState('zh');
 
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
+
+  // 在组件加载时检测浏览器语言
+  useEffect(() => {
+    const browserLang = navigator.language.toLowerCase();
+    setLanguage(browserLang.startsWith('zh') ? 'zh' : 'en');
+  }, []);
+
+  // 获取当前语言的翻译
+  const t = translations[language];
 
   useEffect(() => {
     const getTokenAccounts = async () => {
@@ -45,7 +56,7 @@ export default function SolanaCloseAccount() {
                 metadata = await metaplex
                   .nfts()
                   .findByMint({ mintAddress });
-                  console.log("metadata catched:", metadata)
+                  // console.log("metadata catched:", metadata)
               } catch (metadataError) {
                 console.log(`获取metadata失败: ${metadataError.message}`);
                 // 如果获取metadata失败，返回基础token信息
@@ -122,10 +133,10 @@ export default function SolanaCloseAccount() {
       
       await refreshAccounts();
       
-      alert("Account closed successfully!");
+      alert(t.closeSuccess);
     } catch (error) {
-      console.error("Error closing account:", error);
-      alert(`Error closing account: ${error.message}`);
+      console.error(t.closeError, error);
+      alert(`${t.closeError} ${error.message}`);
     }
   };
 
@@ -136,7 +147,7 @@ export default function SolanaCloseAccount() {
       );
 
       if (emptyAccounts.length === 0) {
-        alert("No empty accounts to close!");
+        alert(t.noEmptyAccounts);
         return;
       }
 
@@ -160,10 +171,10 @@ export default function SolanaCloseAccount() {
       
       await refreshAccounts();
       
-      alert("All empty accounts closed successfully!");
+      alert(t.closeAllSuccess);
     } catch (error) {
-      console.error("Error closing accounts:", error);
-      alert(`Error closing accounts: ${error.message}`);
+      console.error(t.closeAllError, error);
+      alert(`${t.closeAllError} ${error.message}`);
     }
   };
 
@@ -234,22 +245,31 @@ export default function SolanaCloseAccount() {
 
 	return (
     <div className="min-h-screen text-center text-white flex flex-col justify-between">
-      <Header>solana关闭空Token账户</Header>
+      <Header>{t.title}</Header>
       <div className="flex justify-center mt-8 mb-auto flex-col items-center">
+        <select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          className="mb-4 px-4 py-2 rounded bg-gray-700 text-white"
+        >
+          <option value="en">English</option>
+          <option value="zh">中文</option>
+        </select>
+        
         <WalletMultiButtonDynamic />
         {connection && publicKey && (
           <button
             onClick={closeAllEmptyAccounts}
             className="mt-4 px-6 py-2 bg-red-500 hover:bg-red-600 rounded"
           >
-            Close All Empty Accounts
+            {t.closeAllBtn}
           </button>
         )}
         {
           tokenAccounts.length > 0
           &&
           <div className="flex flex-col items-center mt-4">
-            <h2>Token Accounts</h2>
+            <h2>{t.tokenAccounts}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {tokenAccounts.map((tokenAccount) => (
                 <div key={tokenAccount.pubkey.toBase58()} className="border p-4 m-2 rounded-lg max-w-lg w-full overflow-x-auto">
@@ -262,32 +282,32 @@ export default function SolanaCloseAccount() {
                           className="w-24 h-24 object-cover rounded-lg"
                         />
                         <div>
-                          <p><span className="font-bold">Contract Address:</span> {tokenAccount.account.data.parsed.info.mint}</p>
-                          <p><span className="font-bold">Token Name:</span> {tokenAccount.metadata?.name || "Unknown"}</p>
-                          <p><span className="font-bold">Token Symbol:</span> {tokenAccount.metadata?.symbol || "Unknown"}</p>
+                          <p><span className="font-bold">{t.contractAddress}:</span> {tokenAccount.account.data.parsed.info.mint}</p>
+                          <p><span className="font-bold">{t.tokenName}:</span> {tokenAccount.metadata?.name || t.unknown}</p>
+                          <p><span className="font-bold">{t.tokenSymbol}:</span> {tokenAccount.metadata?.symbol || t.unknown}</p>
                           {tokenAccount.metadata?.description && (
-                            <p><span className="font-bold">Description:</span> {tokenAccount.metadata.description}</p>
+                            <p><span className="font-bold">{t.description}:</span> {tokenAccount.metadata.description}</p>
                           )}
-                          <p><span className="font-bold">Token Balance:</span> {
+                          <p><span className="font-bold">{t.tokenBalance}:</span> {
                             Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString)
-                          } ({tokenAccount.account.data.parsed.info.tokenAmount.decimals} decimals)</p>
-                          <p><span className="font-bold">SOL Balance:</span> {
+                          } ({tokenAccount.account.data.parsed.info.tokenAmount.decimals} {t.decimals})</p>
+                          <p><span className="font-bold">{t.solBalance}:</span> {
                             tokenAccount.account.lamports / LAMPORTS_PER_SOL
                           } SOL</p>
                         </div>
                       </div>
                     ) : (
                       <>
-                        <p><span className="font-bold">Contract Address:</span> {tokenAccount.account.data.parsed.info.mint}</p>
-                        <p><span className="font-bold">Token Name:</span> {tokenAccount.metadata?.name || "Unknown"}</p>
-                        <p><span className="font-bold">Token Symbol:</span> {tokenAccount.metadata?.symbol || "Unknown"}</p>
+                        <p><span className="font-bold">{t.contractAddress}:</span> {tokenAccount.account.data.parsed.info.mint}</p>
+                        <p><span className="font-bold">{t.tokenName}:</span> {tokenAccount.metadata?.name || t.unknown}</p>
+                        <p><span className="font-bold">{t.tokenSymbol}:</span> {tokenAccount.metadata?.symbol || t.unknown}</p>
                         {tokenAccount.metadata?.description && (
-                          <p><span className="font-bold">Description:</span> {tokenAccount.metadata.description}</p>
+                          <p><span className="font-bold">{t.description}:</span> {tokenAccount.metadata.description}</p>
                         )}
-                        <p><span className="font-bold">Token Balance:</span> {
+                        <p><span className="font-bold">{t.tokenBalance}:</span> {
                           Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString)
-                        } ({tokenAccount.account.data.parsed.info.tokenAmount.decimals} decimals)</p>
-                        <p><span className="font-bold">SOL Balance:</span> {
+                        } ({tokenAccount.account.data.parsed.info.tokenAmount.decimals} {t.decimals})</p>
+                        <p><span className="font-bold">{t.solBalance}:</span> {
                           tokenAccount.account.lamports / LAMPORTS_PER_SOL
                         } SOL</p>
                       </>
@@ -302,8 +322,8 @@ export default function SolanaCloseAccount() {
                       }`}
                     >
                       {Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString) > 0
-                        ? "Cannot close - Account has balance"
-                        : "Close Account"}
+                        ? t.cannotClose
+                        : t.closeAccount}
                     </button>
                   </div>
                 </div>
