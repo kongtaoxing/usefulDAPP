@@ -9,6 +9,8 @@ import dynamic from "next/dynamic";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { createCloseAccountInstruction } from "@solana/spl-token";
 import { Transaction } from "@solana/web3.js";
+import { Metaplex, keypairIdentity } from "@metaplex-foundation/js";
+import { PublicKey } from "@solana/web3.js";
 
 // add this to solve `Hydration failed` issue
 const WalletMultiButtonDynamic = dynamic(
@@ -29,8 +31,67 @@ export default function SolanaCloseAccount() {
         const raw_tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
           programId: TOKEN_PROGRAM_ID,
         });
-        setTokenAccounts(raw_tokenAccounts.value);
-        console.log('raw_tokenAccounts', raw_tokenAccounts);
+  
+        // 创建Metaplex实例并优化获取metadata的方式
+        const metaplex = new Metaplex(connection);
+        
+        const accountsWithMetadata = await Promise.all(
+          raw_tokenAccounts.value.map(async (account) => {
+            try {
+              const mintAddress = new PublicKey(account.account.data.parsed.info.mint);
+              let metadata;
+              try {
+                // 修复: 移除.run()调用
+                metadata = await metaplex
+                  .nfts()
+                  .findByMint({ mintAddress });
+                  console.log("metadata catched:", metadata)
+              } catch (metadataError) {
+                console.log(`获取metadata失败: ${metadataError.message}`);
+                // 如果获取metadata失败，返回基础token信息
+                return {
+                  ...account,
+                  metadata: {
+                    name: account.account.data.parsed.info.mint.slice(0, 8) + '...',
+                    symbol: 'N/A',
+                    image: null,
+                    uri: null,
+                    description: null,
+                    attributes: []
+                  }
+                };
+              }
+              
+              // 确保metadata的各个字段都存在，使用可选链和默认值
+              return {
+                ...account,
+                metadata: {
+                  name: metadata?.name || 'Unnamed Token',
+                  symbol: metadata?.symbol || 'N/A',
+                  image: metadata?.json?.image || null,
+                  uri: metadata?.uri || null,
+                  description: metadata?.json?.description || null,
+                  attributes: metadata?.json?.attributes || []
+                }
+              };
+            } catch (error) {
+              console.error(`处理Token账户数据时出错: ${error.message}`);
+              return {
+                ...account,
+                metadata: {
+                  name: '处理出错',
+                  symbol: 'ERROR',
+                  image: null,
+                  uri: null,
+                  description: '无法加载Token信息',
+                  attributes: []
+                }
+              };
+            }
+          })
+        );
+  
+        setTokenAccounts(accountsWithMetadata);
       }
       if (!publicKey) {
         setTokenAccounts([]);
@@ -59,11 +120,7 @@ export default function SolanaCloseAccount() {
         ...latestBlockhash
       });
       
-      // 刷新账户列表
-      const raw_tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
-        programId: TOKEN_PROGRAM_ID,
-      });
-      setTokenAccounts(raw_tokenAccounts.value);
+      await refreshAccounts();
       
       alert("Account closed successfully!");
     } catch (error) {
@@ -101,17 +158,78 @@ export default function SolanaCloseAccount() {
         ...latestBlockhash
       });
       
-      // Refresh account list
-      const raw_tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
-        programId: TOKEN_PROGRAM_ID,
-      });
-      setTokenAccounts(raw_tokenAccounts.value);
+      await refreshAccounts();
       
       alert("All empty accounts closed successfully!");
     } catch (error) {
       console.error("Error closing accounts:", error);
       alert(`Error closing accounts: ${error.message}`);
     }
+  };
+
+  const refreshAccounts = async () => {
+    const raw_tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
+      programId: TOKEN_PROGRAM_ID,
+    });
+    
+    // 重新获取带metadata的账户信息
+    const metaplex = new Metaplex(connection);
+    const updatedAccountsWithMetadata = await Promise.all(
+      raw_tokenAccounts.value.map(async (account) => {
+        try {
+          const mintAddress = new PublicKey(account.account.data.parsed.info.mint);
+          let metadata;
+          try {
+            metadata = await metaplex
+              .nfts()
+              .findByMint({ mintAddress })
+              .run();
+          } catch (metadataError) {
+            console.log(`获取metadata失败: ${metadataError.message}`);
+            // 如果获取metadata失败，返回基础token信息
+            return {
+              ...account,
+              metadata: {
+                name: account.account.data.parsed.info.mint.slice(0, 8) + '...',
+                symbol: 'N/A',
+                image: null,
+                uri: null,
+                description: null,
+                attributes: []
+              }
+            };
+          }
+          
+          // 确保metadata的各个字段都存在，使用可选链和默认值
+          return {
+            ...account,
+            metadata: {
+              name: metadata?.name || 'Unnamed Token',
+              symbol: metadata?.symbol || 'N/A',
+              image: metadata?.json?.image || null,
+              uri: metadata?.uri || null,
+              description: metadata?.json?.description || null,
+              attributes: metadata?.json?.attributes || []
+            }
+          };
+        } catch (error) {
+          console.error(`处理Token账户数据时出错: ${error.message}`);
+          return {
+            ...account,
+            metadata: {
+              name: '处理出错',
+              symbol: 'ERROR',
+              image: null,
+              uri: null,
+              description: '无法加载Token信息',
+              attributes: []
+            }
+          };
+        }
+      })
+    );
+    
+    setTokenAccounts(updatedAccountsWithMetadata);
   };
 
 	return (
@@ -136,16 +254,44 @@ export default function SolanaCloseAccount() {
               {tokenAccounts.map((tokenAccount) => (
                 <div key={tokenAccount.pubkey.toBase58()} className="border p-4 m-2 rounded-lg max-w-lg w-full overflow-x-auto">
                   <div className="text-left whitespace-nowrap">
-                    {/* <p><span className="font-bold">Account Address:</span> {tokenAccount.pubkey.toBase58()}</p> */}
-                    <p><span className="font-bold">Contract Address:</span> {tokenAccount.account.data.parsed.info.mint}</p>
-                    <p><span className="font-bold">Token Name:</span> {tokenAccount.account.data.parsed.info.tokenName || "Unknown"}</p>
-                    <p><span className="font-bold">Token Symbol:</span> {tokenAccount.account.data.parsed.info.tokenSymbol || "Unknown"}</p>
-                    <p><span className="font-bold">Token Balance:</span> {
-                      Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString)
-                    } ({tokenAccount.account.data.parsed.info.tokenAmount.decimals} decimals)</p>
-                    <p><span className="font-bold">SOL Balance:</span> {
-                      tokenAccount.account.lamports / LAMPORTS_PER_SOL
-                    } SOL</p>
+                    {tokenAccount.metadata?.image ? (
+                      <div className="flex gap-4">
+                        <img 
+                          src={tokenAccount.metadata.image} 
+                          alt={tokenAccount.metadata.name || "Token Image"} 
+                          className="w-24 h-24 object-cover rounded-lg"
+                        />
+                        <div>
+                          <p><span className="font-bold">Contract Address:</span> {tokenAccount.account.data.parsed.info.mint}</p>
+                          <p><span className="font-bold">Token Name:</span> {tokenAccount.metadata?.name || "Unknown"}</p>
+                          <p><span className="font-bold">Token Symbol:</span> {tokenAccount.metadata?.symbol || "Unknown"}</p>
+                          {tokenAccount.metadata?.description && (
+                            <p><span className="font-bold">Description:</span> {tokenAccount.metadata.description}</p>
+                          )}
+                          <p><span className="font-bold">Token Balance:</span> {
+                            Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString)
+                          } ({tokenAccount.account.data.parsed.info.tokenAmount.decimals} decimals)</p>
+                          <p><span className="font-bold">SOL Balance:</span> {
+                            tokenAccount.account.lamports / LAMPORTS_PER_SOL
+                          } SOL</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p><span className="font-bold">Contract Address:</span> {tokenAccount.account.data.parsed.info.mint}</p>
+                        <p><span className="font-bold">Token Name:</span> {tokenAccount.metadata?.name || "Unknown"}</p>
+                        <p><span className="font-bold">Token Symbol:</span> {tokenAccount.metadata?.symbol || "Unknown"}</p>
+                        {tokenAccount.metadata?.description && (
+                          <p><span className="font-bold">Description:</span> {tokenAccount.metadata.description}</p>
+                        )}
+                        <p><span className="font-bold">Token Balance:</span> {
+                          Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString)
+                        } ({tokenAccount.account.data.parsed.info.tokenAmount.decimals} decimals)</p>
+                        <p><span className="font-bold">SOL Balance:</span> {
+                          tokenAccount.account.lamports / LAMPORTS_PER_SOL
+                        } SOL</p>
+                      </>
+                    )}
                     <button 
                       onClick={() => closeAccount(tokenAccount.pubkey)}
                       disabled={Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString) > 0}
