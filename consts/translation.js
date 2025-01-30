@@ -18,7 +18,11 @@ export const solanaSplTranslations = {
     closeAllSuccess: "所有空账户关闭成功！",
     closeAllError: "关闭账户出错：",
     unknown: "未知",
-    language: "语言"
+    language: "语言",
+    burnAndClose: "燃烧代币并关闭账户",
+    burnAndCloseConfirm: "确定要燃烧所有代币并关闭此账户吗？此操作不可逆！",
+    burnSuccess: "代币燃烧成功！",
+    burnError: "燃烧代币时出错："
   },
   en: {
     title: "Close Empty Solana Token Accounts",
@@ -39,6 +43,10 @@ export const solanaSplTranslations = {
     closeAllSuccess: "All empty accounts closed successfully!",
     closeAllError: "Error closing accounts:",
     unknown: "Unknown",
-    language: "Language"
+    language: "Language",
+    burnAndClose: "Burn tokens and close account",
+    burnAndCloseConfirm: "Are you sure you want to burn all tokens and close this account? This action cannot be undone!",
+    burnSuccess: "Tokens burned successfully!",
+    burnError: "Error burning tokens:"
   }
 };

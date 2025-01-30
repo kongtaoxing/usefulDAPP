@@ -7,7 +7,7 @@ import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { createCloseAccountInstruction } from "@solana/spl-token";
+import { createCloseAccountInstruction, createBurnInstruction } from "@solana/spl-token";
 import { Transaction } from "@solana/web3.js";
 import { Metaplex, keypairIdentity } from "@metaplex-foundation/js";
 import { PublicKey } from "@solana/web3.js";
@@ -243,6 +243,48 @@ export default function SolanaCloseAccount() {
     setTokenAccounts(updatedAccountsWithMetadata);
   };
 
+  const burnAndCloseAccount = async (tokenAccount) => {
+    if (!confirm(t.burnAndCloseConfirm)) {
+      return;
+    }
+
+    try {
+      const transaction = new Transaction();
+      
+      // 添加燃烧指令
+      const burnInstruction = createBurnInstruction(
+        tokenAccount.pubkey,                                    // token账户
+        new PublicKey(tokenAccount.account.data.parsed.info.mint),  // mint地址
+        publicKey,                                              // owner
+        tokenAccount.account.data.parsed.info.tokenAmount.amount    // 燃烧数量
+      );
+      
+      // 添加关闭账户指令
+      const closeInstruction = createCloseAccountInstruction(
+        tokenAccount.pubkey,
+        publicKey,
+        publicKey,
+      );
+      
+      transaction.add(burnInstruction);
+      transaction.add(closeInstruction);
+      
+      const signature = await sendTransaction(transaction, connection);
+      const latestBlockhash = await connection.getLatestBlockhash();
+      await connection.confirmTransaction({
+        signature,
+        ...latestBlockhash
+      });
+      
+      await refreshAccounts();
+      
+      alert(t.burnSuccess);
+    } catch (error) {
+      console.error(t.burnError, error);
+      alert(`${t.burnError} ${error.message}`);
+    }
+  };
+
 	return (
     <div className="min-h-screen text-center text-white flex flex-col justify-between">
       <Header>{t.title}</Header>
@@ -312,19 +354,30 @@ export default function SolanaCloseAccount() {
                         } SOL</p>
                       </>
                     )}
-                    <button 
-                      onClick={() => closeAccount(tokenAccount.pubkey)}
-                      disabled={Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString) > 0}
-                      className={`mt-4 px-4 py-2 rounded ${
-                        Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString) > 0
-                          ? 'bg-gray-500 cursor-not-allowed'
-                          : 'bg-red-500 hover:bg-red-600'
-                      }`}
-                    >
-                      {Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString) > 0
-                        ? t.cannotClose
-                        : t.closeAccount}
-                    </button>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => closeAccount(tokenAccount.pubkey)}
+                        disabled={Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString) > 0}
+                        className={`mt-4 px-4 py-2 rounded ${
+                          Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString) > 0
+                            ? 'bg-gray-500 cursor-not-allowed'
+                            : 'bg-red-500 hover:bg-red-600'
+                        }`}
+                      >
+                        {Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString) > 0
+                          ? t.cannotClose
+                          : t.closeAccount}
+                      </button>
+                      
+                      {Number(tokenAccount.account.data.parsed.info.tokenAmount.uiAmountString) > 0 && (
+                        <button 
+                          onClick={() => burnAndCloseAccount(tokenAccount)}
+                          className="mt-4 px-4 py-2 rounded bg-red-500 hover:bg-red-600"
+                        >
+                          {t.burnAndClose}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
